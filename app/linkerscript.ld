@@ -35,6 +35,8 @@ ENTRY(reset_handler)
 SECTIONS
 {
 	.text : {
+		KEEP (*(.bootloader_section))
+
 		*(.vectors)	/* Vector table */
 		*(.text*)	/* Program code */
 		. = ALIGN(4);
