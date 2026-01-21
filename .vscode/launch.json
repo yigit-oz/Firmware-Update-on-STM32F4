@@ -14,6 +14,18 @@
       "preLaunchTask": "build_debug"
     },
     {
+      "name": "ST-Link: Debug From Reset",
+      "cwd": "${workspaceFolder}/app",
+      "executable": "./firmware.elf",
+      "servertype": "stutil",
+      "request": "launch",
+      "type": "cortex-debug",
+      "device": "STM32F407VGTx",
+      "runToEntryPoint": "reset_handler",
+      "interface": "swd",
+      "preLaunchTask": "build_debug"
+    },
+    {
       "name": "ST-Link: Attach to active",
       "cwd": "${workspaceFolder}/app",
       "executable": "./firmware.elf",
