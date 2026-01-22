@@ -21,11 +21,17 @@ void sys_tick_handler(void) {
 }
 
 uint64_t system_get_ticks(void) {
-    return ticks;
+  return ticks;
 }
 
 void system_setup(void) {
-    rcc_setup();
-    systick_setup();
+  rcc_setup();
+  systick_setup();
 }
 
+void system_delay(uint64_t miliseconds) {
+  uint64_t end_time = system_get_ticks() + miliseconds;
+  while(system_get_ticks() < end_time) {
+    // Wait
+  }
+}

@@ -49,13 +49,14 @@ int main(void) {
 
       timer_pwm_set_duty_cycle(duty_cycle);
       start_time = system_get_ticks();
-    }
+    } 
 
     if(UartDataAvailable()) {
       uint8_t data = UartReadByte();
-      UartWriteByte(data + 1);
+      UartWriteByte(data);
     }
 
+    system_delay(1000);
   }
 
   return 0;

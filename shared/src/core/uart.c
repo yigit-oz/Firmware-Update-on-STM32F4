@@ -2,24 +2,29 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include "core/uart.h"
+#include "core/ring-buffer.h"
 
 #define BAUD_RATE 115200
 #define DATA_BITS 8
+#define RING_BUFFER_SIZE 128 // For maximum of ~10ms of latency
 
-static uint8_t DataBuffer = 0U;
-static bool DataAvailable = false;
+static RingBuffer_t rb = {0U};
+static uint8_t DataBuffer[RING_BUFFER_SIZE] = {0U};
 
 void usart2_isr(void) {
     const bool OverrunOccured = usart_get_flag(USART2, USART_FLAG_ORE);
     const bool ReceivedData = usart_get_flag(USART2, USART_FLAG_RXNE);
 
     if(OverrunOccured || ReceivedData) {
-        DataBuffer = (uint8_t)usart_recv(USART2);
-        DataAvailable = true;
+        if(!RingBufferWrite(&rb, (uint8_t)usart_recv(USART2))) {
+            // Handle failure
+        }
     }
 }
 
 void UartSetup(void) {
+    RingBufferSetup(&rb, DataBuffer, RING_BUFFER_SIZE);
+
     rcc_periph_clock_enable(RCC_USART2);
 
     usart_set_mode(USART2, USART_MODE_TX_RX);
@@ -46,20 +51,27 @@ void UartWriteByte(uint8_t data) {
 }
 
 uint32_t UartRead(uint8_t *data, const uint32_t length) { // Returns how many bytes read
-    if(length > 0 && DataAvailable) {
-        *data = DataBuffer;
-        DataAvailable = false;
-        return 1; // 1 byte read
+    if(length <= 0) {
+        return 0;
     }
 
-    return 0;
+    for(uint32_t BytesRead = 0; BytesRead < length; BytesRead++) {
+        if(!RingBufferRead(&rb, &data[BytesRead])) {
+            return BytesRead;
+        }
+    }
+
+    return length;
 }
 
 uint8_t UartReadByte(void) {
-    DataAvailable = false;
-    return DataBuffer;
+    uint8_t byte = 0;
+
+    (void)UartRead(&byte, 1); // Explicitely ignore return value
+
+    return byte;
 }
 
 bool UartDataAvailable(void) {
-    return DataAvailable;
+    return !RingBufferEmpty(&rb);
 }

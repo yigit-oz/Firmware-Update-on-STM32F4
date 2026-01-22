@@ -1,3 +1,5 @@
+// picocom -b 115200 -d 8 -p n -s 1 -f n -r -l /dev/ttyUSB0
+
 #ifndef INC_UART_H
 #define INC_UART_H
 
