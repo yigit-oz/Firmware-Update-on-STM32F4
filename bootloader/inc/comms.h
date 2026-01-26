@@ -13,8 +13,8 @@
 
 typedef struct CommsPacket_t {
     uint8_t length;
-    uint8_t crc;
     uint8_t data[PACKET_DATA_LENGTH];
+    uint8_t crc;
 } CommsPacket_t;
 
 void CommsSetup(void);

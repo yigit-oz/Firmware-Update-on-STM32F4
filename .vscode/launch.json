@@ -14,6 +14,18 @@
       "preLaunchTask": "build_debug"
     },
     {
+      "name": "ST-Link: Debug Bootloader",
+      "cwd": "${workspaceFolder}/bootloader",
+      "executable": "./bootloader.elf",
+      "servertype": "stutil",
+      "request": "launch",
+      "type": "cortex-debug",
+      "device": "STM32F407VGTx",
+      "runToEntryPoint": "main",
+      "interface": "swd",
+      "preLaunchTask": "build_bootloader"
+    },
+    {
       "name": "ST-Link: Debug From Reset",
       "cwd": "${workspaceFolder}/app",
       "executable": "./firmware.elf",
@@ -29,6 +41,17 @@
       "name": "ST-Link: Attach to active",
       "cwd": "${workspaceFolder}/app",
       "executable": "./firmware.elf",
+      "servertype": "stutil",
+      "request": "attach",
+      "type": "cortex-debug",
+      "device": "STM32F407VGTx",
+      "runToEntryPoint": "main",
+      "interface": "swd"
+    },
+    {
+      "name": "ST-Link: Attach to Bootloader",
+      "cwd": "${workspaceFolder}/bootloader",
+      "executable": "./bootloader.elf",
       "servertype": "stutil",
       "request": "attach",
       "type": "cortex-debug",

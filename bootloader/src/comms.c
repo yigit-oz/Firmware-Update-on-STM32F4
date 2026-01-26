@@ -21,7 +21,7 @@ static CommsPacket_t LastTransmittedPacket = {.length = 0, .data = {0}, .crc = 0
 static CommsPacket_t PacketBuffer[PACKET_BUFFER_LENGTH];
 static uint32_t PacketReadIndex = 0;
 static uint32_t PacketWriteIndex = 0;
-static uint32_t PacketBufferMask = PACKET_BUFFER_LENGTH;
+static uint32_t PacketBufferMask = PACKET_BUFFER_LENGTH - 1;
 
 // Fills unused data bytes with 0xff
 static void CommsFillUnusedDataBytes(CommsPacket_t *packet) {
@@ -133,7 +133,8 @@ bool CommsPacketsAvailable(void) {
 }
 
 void CommsWrite(CommsPacket_t *packet) {
-    UartWrite((uint8_t*)&packet, PACKET_LENGTH);
+    UartWrite((uint8_t*)packet, PACKET_LENGTH);
+    CommsPacketCopy(packet, &LastTransmittedPacket);
 }
 
 void CommsRead(CommsPacket_t *packet) {
