@@ -6,6 +6,7 @@
 #include "core/uart.h"
 #include "core/system.h"
 #include "comms.h"
+#include "bootloader-flash.h"
 
 #define BOOTLOADER_SIZE (0x8000) // Located in sector 0 and 1
 #define MAIN_APP_START_ADDRESS (FLASH_BASE + BOOTLOADER_SIZE) // Starts from sector 3
@@ -27,28 +28,25 @@ static void jump_to_main_application(void) {
 
 int main(void) {
   system_setup();
-  GpioSetup();
-  UartSetup();
-  CommsSetup();
+  // GpioSetup();
+  // UartSetup();
+  // CommsSetup();
 
-  CommsPacket_t packet = {
-    .length = 9,
-    .data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff },
-    .crc = 0
-  };
-  packet.crc = CommsComputeCrc(&packet);
+  uint8_t data[1024] = {0};
+  for(uint16_t i = 0; i < 1024; i++) {
+    data[i] = i & 0xff;
+  }
+
+  FlashEraseMainApplication();
+  FlashWrite(0x08008000, data, 1024);
+  FlashWrite(0x0800C000, data, 1024);
+  FlashWrite(0x08010000, data, 1024);
+  FlashWrite(0x08020000, data, 1024);
+  FlashWrite(0x08040000, data, 1024);
+  FlashWrite(0x08060000, data, 1024);
 
   while(true) {
-    CommsUpdate();
-
-    CommsPacket_t rx_packet;
-
-    if(CommsPacketsAvailable()) {
-      CommsRead(&rx_packet);
-    }
-
-    CommsWrite(&packet);
-    system_delay(500);
+    
   }
 
   // Todo: Reset the system before jumping to main application
