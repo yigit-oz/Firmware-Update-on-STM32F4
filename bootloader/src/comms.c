@@ -1,3 +1,4 @@
+#include <string.h>
 #include "comms.h"
 #include "core/uart.h"
 #include "core/crc8.h"
@@ -23,16 +24,7 @@ static uint32_t PacketReadIndex = 0;
 static uint32_t PacketWriteIndex = 0;
 static uint32_t PacketBufferMask = PACKET_BUFFER_LENGTH - 1;
 
-// Fills unused data bytes with 0xff
-static void CommsFillUnusedDataBytes(CommsPacket_t *packet) {
-    uint8_t DataLength = packet->length;
-    
-    for(uint8_t i = PACKET_DATA_LENGTH - 1; i >= DataLength; i--) {
-        packet->data[i] = 0xff;
-    }
-}
-
-static bool CommsIsSingleBytePacket(const CommsPacket_t *packet, uint8_t byte) {
+bool CommsIsSingleBytePacket(const CommsPacket_t *packet, uint8_t byte) {
     if(packet->length != 1) {
         return false;
     }
@@ -50,26 +42,18 @@ static bool CommsIsSingleBytePacket(const CommsPacket_t *packet, uint8_t byte) {
     return true;
 }
 
-static void CommsPacketCopy(const CommsPacket_t *source, CommsPacket_t *dest) {
-    dest->length = source->length;
-    for(uint8_t i = 0; i < PACKET_DATA_LENGTH; i++) {
-        dest->data[i] = source->data[i];
-    }
-    dest->crc = source->crc;
+void CommsCreateSingleBytePacket(CommsPacket_t *packet, uint8_t byte) {
+    memset(packet, 0xff, sizeof(CommsPacket_t));
+    packet->length = 1;
+    packet->data[0] = byte;
+    packet->crc = CommsComputeCrc(packet);
 }
 
 void CommsSetup(void) {
     // Initialize retransmit packet
-    RetransmitPacket.length = 1;
-    RetransmitPacket.data[0] = PACKET_RETX_DATA0;
-    CommsFillUnusedDataBytes(&RetransmitPacket);
-    RetransmitPacket.crc = CommsComputeCrc(&RetransmitPacket);
-
+    CommsCreateSingleBytePacket(&RetransmitPacket, PACKET_RETX_DATA0);
     // Initialize ack packet
-    AckPacket.length = 1;
-    AckPacket.data[0] = PACKET_ACK_DATA0;
-    CommsFillUnusedDataBytes(&AckPacket);
-    AckPacket.crc = CommsComputeCrc(&AckPacket);
+    CommsCreateSingleBytePacket(&AckPacket, PACKET_ACK_DATA0);
 } 
 
 // Pcaket state machine
@@ -114,7 +98,7 @@ void CommsUpdate(void) {
                     __asm__("BKPT #0"); // A breakpoint in case of a bufferoverflow
                 }
 
-                CommsPacketCopy(&TemporaryPacket, &PacketBuffer[PacketWriteIndex]);
+                memcpy(&PacketBuffer[PacketWriteIndex], &TemporaryPacket, sizeof(CommsPacket_t));
                 PacketWriteIndex = NextWriteIndex;
                 CommsWrite(&AckPacket);
                 state = COMMS_STATE_LENGTH;
@@ -134,11 +118,11 @@ bool CommsPacketsAvailable(void) {
 
 void CommsWrite(CommsPacket_t *packet) {
     UartWrite((uint8_t*)packet, PACKET_LENGTH);
-    CommsPacketCopy(packet, &LastTransmittedPacket);
+    memcpy(&LastTransmittedPacket, packet, sizeof(CommsPacket_t));
 }
 
 void CommsRead(CommsPacket_t *packet) {
-    CommsPacketCopy(&PacketBuffer[PacketReadIndex], packet);
+    memcpy(packet, &PacketBuffer[PacketReadIndex], sizeof(CommsPacket_t));
     PacketReadIndex = (PacketReadIndex + 1) & PacketBufferMask;
 }
 

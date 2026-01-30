@@ -11,5 +11,6 @@ void UartWriteByte(uint8_t data);
 uint32_t UartRead(uint8_t *data, const uint32_t length); // Returns how many bytes read
 uint8_t UartReadByte(void);
 bool UartDataAvailable(void);
+void UartTeardown(void);
 
 #endif

@@ -56,7 +56,7 @@ int main(void) {
       UartWriteByte(data);
     }
 
-    system_delay(1000);
+    //system_delay(1000);
   }
 
   return 0;
