@@ -3,6 +3,8 @@ This project uses libopencm3 library. It consists of a simple UART based firmwar
 data transmission. The bootloader receives firmware packets over UART, verifies them using CRC, erases the existing application, and programs the new firmware into 
 flash memory.
 
+Place your .bin update file into the Firmware-Update-on-STM32F4 folder and rename it as "firmware.bin" to update the firmware with that file.
+
 ## Update Flow
 Device starts in bootloader. (Sector 0 and 1!) For 5 seconds, it waits for a BL_STATE_SYNC message from the uart for starting the update, otherwise jumps into the main application's reset vector.
 
